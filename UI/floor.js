@@ -16,7 +16,8 @@ function createSimpleTexture(color1, color2, size) {
     textureCtx.fillRect(0, 0, size, size);
     textureCtx.fillRect(size, size, size, size);
 
-    return ctx.createPattern(textureCanvas, 'repeat');
+    // Corrected to use textureCtx to create the pattern
+    return textureCtx.createPattern(textureCanvas, 'repeat');
 }
 const floorTexture = createSimpleTexture('#8B4513', '#6B3E0C', 10);
 const platformTexture = createSimpleTexture('#7C1213', '#62CE3C', 10);
