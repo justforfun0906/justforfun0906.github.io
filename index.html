@@ -75,6 +75,10 @@
                 second: {
                     tubeX: 0
                 }
+            },
+            text : {
+                main: 'Main Scene',
+                second: 'Second Scene'
             }
         };
 
@@ -123,6 +127,17 @@
 
             // Apply gravity
             player.velocityY += 0.5;
+
+            // indicate the scene
+            if(scene.current === 'main') {
+                ctx.font = "bold 24px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(scene.text.main, canvas.width/2, 50);
+            } else {
+                ctx.font = "bold 24px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(scene.text.second, canvas.width/2, 50);
+            }
 
             // Handle jumping
             if (keys[' '] && player.canJump && !jumpKeyPressed) {
