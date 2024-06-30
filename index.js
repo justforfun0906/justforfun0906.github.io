@@ -1,5 +1,5 @@
 //import tube from './UI/tube.js';
-//import { tube, DrawTube } from './UI/tube.js';
+import {tube, DrawTube } from './UI/tube.js';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -31,13 +31,6 @@ const platforms = [
     { x: 300, y: 250, width: 200, height: 20, canDropThrough: true }
 ];
 
-// Tube
-const tube = {
-    x: 750,
-    y: 300,
-    width: 50,
-    height: 50
-};
 
 // Key states
 const keys = {
@@ -177,8 +170,7 @@ function gameLoop() {
     }
 
     // Draw tube
-    ctx.fillStyle = 'red';
-    ctx.fillRect(tube.x, tube.y, tube.width, tube.height);
+    DrawTube(ctx);
 
     // Draw player with jump animation
     ctx.fillStyle = 'blue';
