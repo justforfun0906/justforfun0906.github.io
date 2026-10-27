@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>主動AI供應鏈動能輪動 · 基金儀表板</title>
+  <meta name="description" content="AI CUP 2026 玉山挑戰賽「Agent 基金經理人」參賽基金：即時淨值、績效、風險指標與持股。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232a78d6'/%3E%3Cpath d='M6 22l6-7 5 4 9-10' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <div class="brand">
+        <h1 id="fund-name">主動AI供應鏈動能輪動</h1>
+        <p class="sub">AI CUP 2026 玉山挑戰賽 · Agent 基金經理人 · 模擬資金 NT$10 億</p>
+      </div>
+      <div class="top-right">
+        <span id="phase" class="pill">載入中</span>
+        <span id="updated" class="muted small"></span>
+        <button id="theme" class="icon-btn" type="button" aria-label="切換深淺色">◐</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="stale" class="banner" hidden></div>
+
+    <section class="hero card">
+      <div class="hero-main">
+        <div class="label">基金淨值（NT$）<span id="source" class="tag"></span></div>
+        <div id="nav" class="hero-value">—</div>
+        <div id="nav-yi" class="muted small"></div>
+        <div class="hero-deltas">
+          <div><span class="label">今日損益</span><span id="day" class="delta">—</span></div>
+          <div><span class="label">加權指數</span><span id="taiex-day" class="delta">—</span></div>
+          <div><span class="label">今日超額</span><span id="day-excess" class="delta">—</span></div>
+        </div>
+        <p id="fill-note" class="muted small"></p>
+      </div>
+      <div class="hero-chart">
+        <div class="chart-head">
+          <h2>今日走勢</h2>
+          <div class="legend" id="intra-legend"></div>
+        </div>
+        <div id="intra" class="chart" style="height:220px"></div>
+      </div>
+    </section>
+
+    <section class="tiles" id="tiles"></section>
+
+    <section class="card">
+      <div class="chart-head">
+        <h2>累積績效 <span class="muted small">初賽前收盤 = 100</span></h2>
+        <div class="legend" id="cum-legend"></div>
+      </div>
+      <div id="cum" class="chart" style="height:260px"></div>
+      <h3 class="mini-title">回撤</h3>
+      <div id="dd" class="chart" style="height:110px"></div>
+    </section>
+
+    <div class="grid2">
+      <section class="card">
+        <h2>風險指標</h2>
+        <p class="muted small">預估值以目前權重 × 過去 120 個交易日報酬計算；實現值為初賽以來的日報酬。</p>
+        <table class="kv" id="risk"></table>
+      </section>
+      <section class="card">
+        <h2>部位配置</h2>
+        <div id="sleeves" class="stackbar"></div>
+        <div class="legend" id="sleeve-legend"></div>
+        <h3 class="mini-title">次產業曝險 <span class="muted small">虛線 = 單一次產業 30% 上限</span></h3>
+        <div id="segments"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="chart-head">
+        <h2>今日損益貢獻 <span class="muted small">占期初淨值，基點（bp）</span></h2>
+      </div>
+      <div id="contrib"></div>
+    </section>
+
+    <section class="card">
+      <div class="chart-head">
+        <h2>持股明細 <span class="muted small" id="hold-count"></span></h2>
+        <div class="chips" id="groups" role="tablist"></div>
+      </div>
+      <div class="table-wrap"><table class="grid" id="holdings"></table></div>
+      <p class="muted small">點選列可展開 Agent 的決策理由。台股慣例：紅漲綠跌。法人買賣超單位：張。</p>
+    </section>
+
+    <div class="grid2">
+      <section class="card">
+        <h2>規則檢查</h2>
+        <ul class="checks" id="checks"></ul>
+        <details class="small" id="as-details"><summary>Active Share 明細（vs 各主動式 ETF 前 15 大）</summary><div id="as-list" class="as-list"></div></details>
+        <div id="warnings"></div>
+      </section>
+      <section class="card">
+        <h2>市場概況</h2>
+        <div class="mkt" id="market"></div>
+      </section>
+    </div>
+
+    <section class="card" id="view-card">
+      <h2>Agent 市場觀點</h2>
+      <div class="badges" id="badges"></div>
+      <div class="view-text">
+        <h3 class="mini-title">判斷</h3>
+        <p id="logic"></p>
+        <h3 class="mini-title">反向證據</h3>
+        <p id="counter"></p>
+      </div>
+      <p class="muted small" id="meta"></p>
+      <div id="pending"></div>
+    </section>
+
+    <footer class="foot muted small">
+      <p>本頁為 AI CUP 2026 玉山挑戰賽之模擬投資組合，非投資建議。所有投資決策由多代理人系統（Qwen）自主產生；數字皆由程式計算。</p>
+      <p>方法：當日部位 = 期初持股 + 當日 D-Plan 委託，以盤中成交均價（VWAP，比賽以當日 VWAP 成交）估算成交，含手續費 0.1425% 與證交稅 0.3%，以最新成交價評價。收盤後以官方 DataPack 結算取代估算。行情來源：Fugle、TWSE MIS、TWSE / TPEx OpenAPI、Yahoo Finance。盤中約每 10 分鐘更新。</p>
+    </footer>
+  </main>
+
+  <div id="tip" class="tip" role="tooltip" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
