@@ -103,6 +103,52 @@
       </section>
     </div>
 
+    <section class="card" id="gauges-card">
+      <div class="chart-head">
+        <h2>市場籌碼指標 <span class="muted small">每日收盤後由程式更新，不經 Agent</span></h2>
+        <span class="muted small" id="g-asof"></span>
+      </div>
+      <div class="tiles g-tiles" id="g-tiles"></div>
+      <div class="grid2 g-charts">
+        <div>
+          <div class="chart-head">
+            <h3 class="mini-title">微型台指散戶多空比</h3>
+            <div class="legend" id="g-tmf-legend"></div>
+          </div>
+          <div id="g-tmf" class="chart" style="height:220px"></div>
+          <p class="muted small">正值 = 散戶淨多單；負值 = 淨空單。散戶偏多常被視為反向指標。</p>
+        </div>
+        <div>
+          <div class="chart-head">
+            <h3 class="mini-title">上市融資維持率</h3>
+            <div class="legend" id="g-ratio-legend"></div>
+          </div>
+          <div id="g-ratio" class="chart" style="height:220px"></div>
+          <p class="muted small">個別帳戶低於 130% 會被追繳；大盤維持率愈低，斷頭賣壓愈大。00631L 只占融資約 1.5%，兩條線因此幾乎重疊。</p>
+        </div>
+      </div>
+      <div class="chart-head">
+        <h3 class="mini-title">上市融資餘額 <span class="muted small">億元</span></h3>
+        <div class="legend" id="g-loan-legend"></div>
+      </div>
+      <div id="g-loan" class="chart" style="height:200px"></div>
+      <details class="small g-src">
+        <summary>計算方式與資料來源</summary>
+        <ul>
+          <li><b>微型台指散戶多空比</b> =（散戶多單 − 散戶空單）÷ 全市場未平倉口數。散戶多單 = 全市場未平倉 − 三大法人多方未平倉，散戶空單同理；等同 −三大法人未平倉淨額 ÷ 全市場未平倉。全市場未平倉 = 微型臺指期貨（TMF）一般交易時段各月份未沖銷契約數合計。
+            來源：臺灣期貨交易所
+            <a href="https://www.taifex.com.tw/cht/3/futContractsDate" target="_blank" rel="noopener">三大法人－區分各期貨契約</a>、
+            <a href="https://www.taifex.com.tw/cht/3/futDailyMarketReport" target="_blank" rel="noopener">期貨每日交易行情</a>。</li>
+          <li><b>上市融資維持率</b> = Σ（各證券融資餘額張數 × 1,000 × 當日收盤價）÷ 融資金額餘額，涵蓋上市股票與 ETF（無成交者以最後揭示買價計）。
+            來源：臺灣證券交易所
+            <a href="https://www.twse.com.tw/zh/trading/margin/mi-margn.html" target="_blank" rel="noopener">融資融券餘額（MI_MARGN）</a>、
+            <a href="https://www.twse.com.tw/zh/trading/historical/mi-index.html" target="_blank" rel="noopener">每日收盤行情（MI_INDEX）</a>。</li>
+          <li><b>扣除 00631L（元大台灣50正2）</b>：分子扣除 00631L 融資市值，分母扣除 00631L 融資金額。證交所只公布全市場融資金額，個別證券僅有張數，因此 00631L 的融資金額為<b>估計值</b>：以每日融資買進張數 × 當日成交均價 × 60%（上市融資成數）累加，賣出與現金償還按平均每張融資金額扣除；前 20 個交易日為暖機期不顯示。</li>
+          <li>融資資料約於每日 21:30 公布，網站於隔日清晨更新；期貨資料於收盤後約 15:00 公布，網站於 18:00 更新。</li>
+        </ul>
+      </details>
+    </section>
+
     <section class="card" id="view-card">
       <h2>Agent 市場觀點</h2>
       <div class="badges" id="badges"></div>

@@ -69,7 +69,7 @@ function showTip(ev, title, rows) {
 const hideTip = () => { tip.hidden = true; };
 
 // --- line chart: series share one y-axis; crosshair snaps to the nearest x ----------------------------------
-function lineChart(el, { series, xs, xLabel, yFmt, tipTitle, xDomain, area, zero }) {
+function lineChart(el, { series, xs, xLabel, yFmt, tipTitle, xDomain, area, zero, tipExtra }) {
   el.replaceChildren();
   const W = el.clientWidth, H = el.clientHeight;
   if (!xs.length || W < 50) { el.append(h("div", { class: "empty" }, "尚無資料")); return; }
@@ -123,7 +123,7 @@ function lineChart(el, { series, xs, xLabel, yFmt, tipTitle, xDomain, area, zero
       dots[k].setAttribute("visibility", ok(v) ? "visible" : "hidden");
       if (ok(v)) { dots[k].setAttribute("cx", X(xs[j])); dots[k].setAttribute("cy", Y(v)); }
     });
-    showTip(ev, tipTitle(j), series.map((sr) => [sr.name, sr.tipFmt(sr.ys[j], j), sr.color]));
+    showTip(ev, tipTitle(j), [...series.map((sr) => [sr.name, sr.tipFmt(sr.ys[j], j), sr.color]), ...(tipExtra ? tipExtra(j) : [])]);
   });
   hit.addEventListener("pointerleave", () => { cross.setAttribute("visibility", "hidden"); dots.forEach((d) => d.setAttribute("visibility", "hidden")); hideTip(); });
   svg.append(hit);
@@ -400,6 +400,70 @@ function renderMarket() {
     h("div", { class: "dt" }, m.live ? "即時" : m.date || ""))));
 }
 
+// market gauges: TAIFEX / TWSE data computed by code (harness/fundsite.py gauges) ----------------------------
+function renderGauges() {
+  const G = D.gauges || {}, T = G.tmf || [], M = G.margin || [];
+  $("gauges-card").hidden = !T.length && !M.length;
+  if (!T.length && !M.length) return;
+  const xl = (rows, el) => (xs) => {
+    const step = Math.max(1, Math.ceil(rows.length / Math.max(2, Math.floor(el.clientWidth / 90))));
+    return xs.filter((i) => (rows.length - 1 - i) % step === 0).map((i) => [i, rows[i].date.slice(5)]);
+  };
+  const tx = (r) => ok(r.taiex) ? [["加權指數", F0.format(r.taiex), null]] : [];
+  const lastT = T.at(-1), lastM = M.at(-1);
+  const prevT = T.at(-2), prevM = M.at(-2);
+  const lastEx = [...M].reverse().find((r) => ok(r.ratio_ex));
+  const chg = (a, b, f) => ok(a) && ok(b) ? `較前日 ${a - b >= 0 ? "+" : "−"}${f(Math.abs(a - b))}` : "";
+  const tile = (label, value, detail, cls) => h("div", { class: "tile" }, h("div", { class: "label" }, label),
+    h("div", { class: "v " + (cls || "") }, value), h("div", { class: "d" }, detail));
+  const ppf = (x) => F1.format(x * 100) + " pp";
+  $("g-tiles").replaceChildren(
+    tile("微台散戶多空比", lastT ? pct(lastT.ratio, 1) : "—", lastT ? `${lastT.date.slice(5)} · ${chg(lastT.ratio, prevT?.ratio, ppf)}` : ""),
+    tile("上市融資維持率", lastM ? pct(lastM.ratio, 1, false) : "—", lastM ? `${lastM.date.slice(5)} · ${chg(lastM.ratio, prevM?.ratio, ppf)}` : ""),
+    tile("扣除 00631L 維持率", lastEx ? pct(lastEx.ratio_ex, 1, false) : "—", lastEx ? `${lastEx.date.slice(5)} · 00631L 融資為估計值` : "暖機中"),
+    tile("上市融資餘額", lastM ? F0.format(lastM.loan / 1e8) + " 億" : "—",
+      lastM ? `${chg(lastM.loan / 1e8, prevM?.loan / 1e8, (x) => F0.format(x) + " 億")}` + (ok(lastM.loan_ex) ? ` · 扣 00631L ${F0.format(lastM.loan_ex / 1e8)} 億` : "") : ""),
+  );
+  const asof = [lastT && `期貨 ${lastT.date}`, lastM && `融資 ${lastM.date}`].filter(Boolean).join(" · ");
+  $("g-asof").textContent = asof ? `資料日期：${asof}` : "";
+
+  legend($("g-tmf-legend"), [["散戶多空比", "var(--s1)"]]);
+  if (T.length > 1) lineChart($("g-tmf"), {
+    xs: T.map((_, i) => i), xLabel: xl(T, $("g-tmf")), zero: 0, area: true, tipTitle: (j) => T[j].date,
+    series: [{ name: "散戶多空比", color: "var(--s1)", ys: T.map((r) => r.ratio), label: (v) => pct(v, 1),
+      tipFmt: (v) => pct(v, 1) }],
+    yFmt: (v) => pct(v, 0).replace("−", "-"),
+    tipExtra: (j) => { const x = T[j]; return [["散戶多單", F0.format(x.retail_long) + " 口", null], ["散戶空單", F0.format(x.retail_short) + " 口", null],
+      ["法人未平倉淨額", (x.inst_net > 0 ? "+" : x.inst_net < 0 ? "−" : "") + F0.format(Math.abs(x.inst_net)) + " 口", null],
+      ["全市場未平倉", F0.format(x.oi) + " 口", null], ...tx(x)]; },
+  });
+  else $("g-tmf").replaceChildren(h("div", { class: "empty" }, "尚無資料"));
+  legend($("g-ratio-legend"), [["上市全體", "var(--s1)"], ["扣除 00631L", "var(--s2)"], ["基準線 130%", "var(--axis)"]]);
+  if (M.length > 1) lineChart($("g-ratio"), {
+    xs: M.map((_, i) => i), xLabel: xl(M, $("g-ratio")), zero: 1.3, tipTitle: (j) => M[j].date,
+    series: [
+      { name: "上市全體", color: "var(--s1)", ys: M.map((r) => r.ratio), label: (v) => pct(v, 1, false), tipFmt: (v) => pct(v, 1, false) },
+      { name: "扣除 00631L", color: "var(--s2)", ys: M.map((r) => r.ratio_ex), label: (v) => pct(v, 1, false), tipFmt: (v) => ok(v) ? pct(v, 1, false) : "暖機中" },
+    ],
+    yFmt: (v) => F0.format(v * 100) + "%",
+    tipExtra: (j) => tx(M[j]),
+  });
+  else $("g-ratio").replaceChildren(h("div", { class: "empty" }, "尚無資料"));
+
+  legend($("g-loan-legend"), [["上市全體", "var(--s1)"], ["扣除 00631L（估）", "var(--s2)"]]);
+  if (M.length > 1) lineChart($("g-loan"), {
+    xs: M.map((_, i) => i), xLabel: xl(M, $("g-loan")), tipTitle: (j) => M[j].date,
+    series: [
+      { name: "上市全體", color: "var(--s1)", ys: M.map((r) => r.loan / 1e8), label: (v) => F0.format(v), tipFmt: (v) => F0.format(v) + " 億" },
+      { name: "扣除 00631L", color: "var(--s2)", ys: M.map((r) => ok(r.loan_ex) ? r.loan_ex / 1e8 : null), label: (v) => F0.format(v),
+        tipFmt: (v, j) => ok(v) ? `${F0.format(v)} 億（00631L ${F0.format(M[j].lev_loan / 1e8)} 億、${F0.format(M[j].lev_lots)} 張）` : "暖機中" },
+    ],
+    yFmt: (v) => F0.format(v),
+    tipExtra: (j) => tx(M[j]),
+  });
+  else $("g-loan").replaceChildren(h("div", { class: "empty" }, "尚無資料"));
+}
+
 function renderView() {
   const p = D.today_plan;
   const ZH = { neutral: "中性", risk_on: "偏多", risk_off: "偏空", bull: "多頭", bear: "空頭", defensive: "防禦", aggressive: "積極", balanced: "平衡", increase: "加碼", reduce: "減碼", hold: "持平" };
@@ -426,7 +490,7 @@ function renderView() {
 
 function render() {
   renderHeader(); renderHero(); renderTiles(); renderCurve(); renderRisk();
-  renderAllocation(); renderContrib(); renderHoldings(); renderChecks(); renderMarket(); renderView();
+  renderAllocation(); renderContrib(); renderHoldings(); renderChecks(); renderMarket(); renderGauges(); renderView();
 }
 
 // --- data loop -----------------------------------------------------------------------------------------
@@ -454,6 +518,6 @@ $("theme").addEventListener("click", () => {
 });
 
 let rt;
-addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => D && (renderHero(), renderCurve()), 150); });
+addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => D && (renderHero(), renderCurve(), renderGauges()), 150); });
 load();
 setInterval(load, POLL_MS);

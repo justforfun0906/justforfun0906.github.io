@@ -221,3 +221,14 @@ details summary { cursor: pointer; color: var(--ink-2); margin: 4px 0; }
   .kv td.note { display: none; }
   .kv .note-m { display: block; }
 }
+
+/* market gauges */
+.g-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 4px 0 4px; }
+@media (max-width: 760px) { .g-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.g-tiles .tile { box-shadow: none; border-color: var(--grid); }
+.g-tiles .tile .v { font-variant-numeric: tabular-nums; }
+.g-charts .mini-title, #gauges-card > .chart-head .mini-title { margin-top: 14px; }
+.g-charts p.small { margin: 6px 0 0; }
+.g-src { margin-top: 12px; }
+.g-src ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-2); line-height: 1.7; display: flex; flex-direction: column; gap: 6px; }
+.g-src a { color: var(--s1); }
