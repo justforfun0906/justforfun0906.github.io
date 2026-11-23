@@ -232,3 +232,15 @@ details summary { cursor: pointer; color: var(--ink-2); margin: 4px 0; }
 .g-src { margin-top: 12px; }
 .g-src ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-2); line-height: 1.7; display: flex; flex-direction: column; gap: 6px; }
 .g-src a { color: var(--s1); }
+
+/* holdings after the pending D-Plan */
+.after-bars .row { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.after-bars .stackbar { margin: 5px 0; height: 28px; }
+.after-table th, .after-table td { padding: 6px 8px; border-bottom: 1px solid var(--grid); font-size: 13.5px; white-space: nowrap; }
+.after-table th { color: var(--ink-2); font-weight: 600; text-align: left; font-size: 12.5px; }
+.after-table td.n { text-align: right; font-variant-numeric: tabular-nums; }
+.after-table tr.gone td { color: var(--muted); }
+.after-table .wbar { display: inline-block; height: 8px; border-radius: 0 3px 3px 0; background: var(--s1); vertical-align: middle; margin-right: 6px; }
+.act { font-size: 12px; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--grid); }
+.act.buy { color: var(--up); border-color: currentColor; }
+.act.sell { color: var(--down); border-color: currentColor; }

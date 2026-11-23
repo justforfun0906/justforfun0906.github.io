@@ -149,6 +149,20 @@
       </details>
     </section>
 
+    <section class="card" id="after-card" hidden>
+      <div class="chart-head">
+        <h2>D-Plan 執行後持股 <span class="muted small" id="after-sub"></span></h2>
+      </div>
+      <h3 class="mini-title">資產配置：執行前 → 執行後</h3>
+      <div class="after-bars" id="after-bars"></div>
+      <div class="legend" id="after-legend"></div>
+      <h3 class="mini-title">族群權重（執行後）</h3>
+      <div id="after-segments"></div>
+      <h3 class="mini-title">個股</h3>
+      <div class="table-wrap"><table class="after-table" id="after-table"></table></div>
+      <p class="muted small">以前一交易日收盤價與 D-Plan 委託股數計算；實際以當日成交均價（VWAP）成交，權重會略有差異。</p>
+    </section>
+
     <section class="card" id="view-card">
       <h2>Agent 市場觀點</h2>
       <div class="badges" id="badges"></div>
@@ -169,6 +183,6 @@
   </main>
 
   <div id="tip" class="tip" role="tooltip" hidden></div>
-  <script src="app.js?v=20261120"></script>
+  <script src="app.js?v=20261124"></script>
 </body>
 </html>

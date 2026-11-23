@@ -488,9 +488,53 @@ function renderView() {
     q.actions ? "" : "個股明細於開盤後公布。") : "");
 }
 
+function stack(parts) {
+  return h("div", { class: "stackbar" }, ...parts.map(([k, v, n]) => {
+    const seg = h("div", { class: "seg" + (k === "cash" || k === "?" ? " dark" : ""), style: `flex:${Math.max(v, 0)} 1 0;background:${SLEEVE_COLOR[k]}`, tabindex: 0 },
+      v >= 0.09 ? `${n} ${pct(v, 0, false)}` : "");
+    seg.addEventListener("pointermove", (ev) => showTip(ev, n, [["占淨值", pct(v, 1, false), null]]));
+    seg.addEventListener("pointerleave", hideTip);
+    return seg;
+  }));
+}
+
+function renderAfter() {
+  const A = D.pending_after;
+  $("after-card").hidden = !A;
+  if (!A) return;
+  const names = D.sleeve_names || {};
+  const K = ["core", "satellite", "defensive", "?"];
+  const before = {};
+  for (const r of A.rows) if (r.weight_before > 0) before[r.sleeve] = (before[r.sleeve] || 0) + r.weight_before;
+  const parts = (S, cash) => [...K.filter((k) => S[k] > 0).map((k) => [k, S[k], names[k] || k]), ["cash", cash, "現金"]];
+  const pb = parts(before, A.cash_before), pa = parts(A.sleeves, A.cash_weight);
+  $("after-sub").textContent = `交易日 ${A.trade_date} · ${A.n_before} → ${A.n_after} 檔 · 現金 ${pct(A.cash_before, 1, false)} → ${pct(A.cash_weight, 1, false)}`;
+  $("after-bars").replaceChildren(
+    h("div", { class: "row" }, h("span", {}, "執行前"), stack(pb)),
+    h("div", { class: "row" }, h("span", {}, "執行後"), stack(pa)));
+  const seen = new Map([...pb, ...pa].map(([k, , n]) => [k, n]));
+  legend($("after-legend"), [...seen].map(([k, n]) => [n, SLEEVE_COLOR[k], true]));
+  const seg = Object.entries(A.segments || {});
+  const max = Math.max(0.32, ...seg.map(([, v]) => v));
+  $("after-segments").replaceChildren(...seg.map(([n, v]) => h("div", { class: "hbar" },
+    h("span", { class: "name", title: n }, n),
+    h("div", { class: "track" }, h("div", { class: "fill", style: `width:${v / max * 100}%` })),
+    h("span", { class: "v" }, pct(v, 1, false)))));
+  const cls = { "新買進": "buy", "加碼": "buy", "減碼": "sell", "全數賣出": "sell" };
+  const wmax = Math.max(...A.rows.map((r) => r.weight_after), 0.1);
+  $("after-table").replaceChildren(
+    h("thead", {}, h("tr", {}, ...["代號", "名稱", "族群", "動作", "執行前", "執行後", "股數變化"].map((x, i) => h("th", i >= 4 ? { style: "text-align:right" } : {}, x)))),
+    h("tbody", {}, ...A.rows.map((r) => h("tr", { class: r.shares_after ? "" : "gone" },
+      h("td", {}, r.ticker), h("td", {}, r.name), h("td", {}, r.segment_zh),
+      h("td", {}, h("span", { class: "act " + (cls[r.action] || "") }, r.action)),
+      h("td", { class: "n" }, r.weight_before ? pct(r.weight_before, 2, false) : "—"),
+      h("td", { class: "n" }, h("span", { class: "wbar", style: `width:${r.weight_after / wmax * 60}px` }), r.weight_after ? pct(r.weight_after, 2, false) : "—"),
+      h("td", { class: "n" }, signed(r.shares_after - r.shares_before, (x) => F0.format(Math.abs(x))))))));
+}
+
 function render() {
   renderHeader(); renderHero(); renderTiles(); renderCurve(); renderRisk();
-  renderAllocation(); renderContrib(); renderHoldings(); renderChecks(); renderMarket(); renderGauges(); renderView();
+  renderAllocation(); renderContrib(); renderHoldings(); renderChecks(); renderMarket(); renderGauges(); renderAfter(); renderView();
 }
 
 // --- data loop -----------------------------------------------------------------------------------------
